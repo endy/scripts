@@ -8,6 +8,7 @@
 import tokenize as t
 import StringIO
 import random
+import time
 
 # default seed
 random.seed(0)
@@ -84,6 +85,174 @@ def mergesort(unsorted_list):
 
     return sorted_list
 
+#//////////////////////////////////////////////////////////////////////////////////////////////////
+#   quicksort_outofplace
+#//////////////////////////////////////////////////////////////////////////////////////////////////
+def quicksort_outofplace(unsorted_list):
+
+    sorted_list = []
+
+    if len(unsorted_list) > 1:
+        lowerlist = []
+        upperlist = []
+        
+        pivot = unsorted_list[0]
+    
+        for index in range(1, len(unsorted_list)):
+            if (unsorted_list[index] <= pivot):
+                lowerlist.append(unsorted_list[index])
+            else:
+                upperlist.append(unsorted_list[index])
+    
+        sorted_list = quicksort_outofplace(lowerlist)
+        sorted_list.append(pivot)
+        sorted_list.extend(quicksort_outofplace(upperlist))
+    else:
+        sorted_list = unsorted_list
+
+    return sorted_list
+
+#//////////////////////////////////////////////////////////////////////////////////////////////////
+#   swap_list_items - swap items in a list
+#//////////////////////////////////////////////////////////////////////////////////////////////////
+def swap_list_items(l, idx1, idx2):
+    tmp = l[idx1]
+    l[idx1] = l[idx2]
+    l[idx2] = tmp
+
+#//////////////////////////////////////////////////////////////////////////////////////////////////
+#   quicksort_inplace_bad - first implementation from memory, very poor!
+#//////////////////////////////////////////////////////////////////////////////////////////////////
+def quicksort_inplace_bad(alist, first, last):
+
+    if (first >= last):
+        return
+
+    length = (last - first) + 1
+
+    if length > 2:
+        
+        pivotIdx = first + (length / 2)
+        lowerIdx = first
+        upperIdx = pivotIdx+1
+
+        # sort values less than pivot into lower half, values greater into upper half
+        while ((lowerIdx < pivotIdx) or (upperIdx < last+1)):
+            
+            while (lowerIdx < pivotIdx):
+                if (alist[lowerIdx] > alist[pivotIdx]):
+                    break;
+                else:
+                    lowerIdx += 1
+
+            while (upperIdx < last+1):
+                if (alist[upperIdx] < alist[pivotIdx]):
+                    break;
+                else:
+                    upperIdx += 1
+            
+            if ((lowerIdx < pivotIdx) and (upperIdx < last+1)):
+                # lower and upper are within range, swap them
+                #swap_list_items(alist, lowerIdx, upperIdx)
+                tmp = alist[lowerIdx]
+                alist[lowerIdx] = alist[upperIdx]
+                alist[upperIdx] = tmp
+            elif (lowerIdx < pivotIdx):
+                # only lower is in range
+                swap_list_items(alist, lowerIdx, pivotIdx-1)
+                swap_list_items(alist, pivotIdx, pivotIdx-1)
+                pivotIdx -= 1
+            elif (upperIdx < last+1):
+                # only upper is in range
+                swap_list_items(alist, upperIdx, pivotIdx+1)
+                swap_list_items(alist, pivotIdx, pivotIdx+1)
+                pivotIdx += 1
+
+        # sort lesser & upper values
+        quicksort_inplace_bad(alist, first, pivotIdx-1)
+        quicksort_inplace_bad(alist, pivotIdx+1, last)
+
+    else:
+        if ((length == 2) and (alist[first] > alist[last])):
+            swap_list_items(alist, first, last)
+
+#//////////////////////////////////////////////////////////////////////////////////////////////////
+#   quicksort_inplace
+#//////////////////////////////////////////////////////////////////////////////////////////////////
+def quicksort_inplace(alist, first, last):
+
+    length = (last - first) + 1
+
+    if length > 1 and first < last:
+        
+        pivotIdx = first
+        pivotValue = alist[pivotIdx]
+        storeIdx = first
+
+        swap_list_items(alist, pivotIdx, last)
+
+        # sort lists after partition
+        for i in range(first, last):
+            if (alist[i] < pivotValue):
+                swap_list_items(alist, storeIdx, i)
+                storeIdx += 1
+
+        swap_list_items(alist, storeIdx, last)
+
+        # sort lesser & upper partitions
+        quicksort_inplace(alist, first, storeIdx-1)
+        quicksort_inplace(alist, storeIdx+1, last)
+
+#//////////////////////////////////////////////////////////////////////////////////////////////////
+#   quicksort - calls quicksort_inplace, has different prototype so all sorting calls can 
+#               be uniform
+#//////////////////////////////////////////////////////////////////////////////////////////////////
+def quicksort(alist):
+    quicksort_inplace(alist, 0, len(alist)-1)
+    return alist
+
+#//////////////////////////////////////////////////////////////////////////////////////////////////
+#   bubblesort
+#//////////////////////////////////////////////////////////////////////////////////////////////////
+def bubblesort(unsorted_list):
+
+    print "BubbleSort: Not Implemented!"
+    sorted_list = unsorted_list
+
+    return sorted_list
+
+
+#//////////////////////////////////////////////////////////////////////////////////////////////////
+#   list_to_string
+#//////////////////////////////////////////////////////////////////////////////////////////////////
+def list_to_string(l):
+    liststr = ""
+    for item in l:
+        liststr = liststr + str(item) + " "
+
+    return liststr
+
+
+#//////////////////////////////////////////////////////////////////////////////////////////////////
+#   list_sort_tester
+#//////////////////////////////////////////////////////////////////////////////////////////////////
+def list_sort_tester(sort_func, sort_method_name, unsorted_list):
+    print sort_method_name
+    print "Is Sorted(" + str(len(unsorted_list)) + " items): " + str(is_sorted(unsorted_list))
+
+    sorted_list = unsorted_list[:]
+    start = time.clock()
+    sorted_list = sort_func(sorted_list)
+    elapsed = time.clock() - start
+
+
+    print sort_method_name + " called (" + str(round(elapsed*1000, 3)) + " ms elapsed)"
+
+    print "Is Sorted(" + str(len(sorted_list)) + " items): " + str(is_sorted(sorted_list))
+
+    #print "Unsorted List: " + list_to_string(unsorted_list)
+    #print "Sorted List:   " + list_to_string(sorted_list)
+
 
 #//////////////////////////////////////////////////////////////////////////////////////////////////
 #
@@ -93,34 +262,16 @@ def mergesort(unsorted_list):
 
 #number_list = read_list_from_file('number_list.txt')
 
+orig_list = generate_integer_list(10000, 0, 10000)
 
-orig_list = generate_integer_list(1000, 0, 1000)
+list_sort_tester(quicksort_outofplace, "Quicksort_OutOfPlace", orig_list)
+print ""
+list_sort_tester(quicksort, "Quicksort_Inplace", orig_list)
+print ""
+list_sort_tester(mergesort, "MergeSort", orig_list)
+print ""
+list_sort_tester(sorted, "PythonSort", orig_list)
 
-print "Is Sorted: " + str(is_sorted(orig_list))
-
-sorted_list = mergesort(orig_list)
-print "Sort called"
-
-print "Is Sorted: " + str(is_sorted(sorted_list))
-
-liststr = "Unsorted List: "
-
-for item in orig_list:
-    liststr = liststr + str(item) + " "
-
-print liststr
-
-liststr = "Sorted List:   "
-
-for item in sorted_list:
-    liststr = liststr + str(item) + " "
-
-print liststr
-
-
-
-
-
-
+#list_sort_tester(bubblesort, "BubbleSort", orig_list)
 
 
