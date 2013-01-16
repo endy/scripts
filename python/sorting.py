@@ -10,6 +10,9 @@ import StringIO
 import random
 import time
 
+import sys
+import dis
+
 # default seed
 random.seed(0)
 
@@ -113,70 +116,6 @@ def quicksort_outofplace(unsorted_list):
     return sorted_list
 
 #//////////////////////////////////////////////////////////////////////////////////////////////////
-#   swap_list_items - swap items in a list
-#//////////////////////////////////////////////////////////////////////////////////////////////////
-def swap_list_items(l, idx1, idx2):
-    tmp = l[idx1]
-    l[idx1] = l[idx2]
-    l[idx2] = tmp
-
-#//////////////////////////////////////////////////////////////////////////////////////////////////
-#   quicksort_inplace_bad - first implementation from memory, very poor!
-#//////////////////////////////////////////////////////////////////////////////////////////////////
-def quicksort_inplace_bad(alist, first, last):
-
-    if (first >= last):
-        return
-
-    length = (last - first) + 1
-
-    if length > 2:
-        
-        pivotIdx = first + (length / 2)
-        lowerIdx = first
-        upperIdx = pivotIdx+1
-
-        # sort values less than pivot into lower half, values greater into upper half
-        while ((lowerIdx < pivotIdx) or (upperIdx < last+1)):
-            
-            while (lowerIdx < pivotIdx):
-                if (alist[lowerIdx] > alist[pivotIdx]):
-                    break;
-                else:
-                    lowerIdx += 1
-
-            while (upperIdx < last+1):
-                if (alist[upperIdx] < alist[pivotIdx]):
-                    break;
-                else:
-                    upperIdx += 1
-            
-            if ((lowerIdx < pivotIdx) and (upperIdx < last+1)):
-                # lower and upper are within range, swap them
-                #swap_list_items(alist, lowerIdx, upperIdx)
-                tmp = alist[lowerIdx]
-                alist[lowerIdx] = alist[upperIdx]
-                alist[upperIdx] = tmp
-            elif (lowerIdx < pivotIdx):
-                # only lower is in range
-                swap_list_items(alist, lowerIdx, pivotIdx-1)
-                swap_list_items(alist, pivotIdx, pivotIdx-1)
-                pivotIdx -= 1
-            elif (upperIdx < last+1):
-                # only upper is in range
-                swap_list_items(alist, upperIdx, pivotIdx+1)
-                swap_list_items(alist, pivotIdx, pivotIdx+1)
-                pivotIdx += 1
-
-        # sort lesser & upper values
-        quicksort_inplace_bad(alist, first, pivotIdx-1)
-        quicksort_inplace_bad(alist, pivotIdx+1, last)
-
-    else:
-        if ((length == 2) and (alist[first] > alist[last])):
-            swap_list_items(alist, first, last)
-
-#//////////////////////////////////////////////////////////////////////////////////////////////////
 #   quicksort_inplace
 #//////////////////////////////////////////////////////////////////////////////////////////////////
 def quicksort_inplace(alist, first, last):
@@ -185,19 +124,17 @@ def quicksort_inplace(alist, first, last):
 
     if length > 1 and first < last:
         
-        pivotIdx = first
-        pivotValue = alist[pivotIdx]
         storeIdx = first
-
-        swap_list_items(alist, pivotIdx, last)
+        pivotValue = alist[storeIdx]
+        alist[storeIdx], alist[last] = alist[last], alist[storeIdx]
 
         # sort lists after partition
         for i in range(first, last):
             if (alist[i] < pivotValue):
-                swap_list_items(alist, storeIdx, i)
+                alist[storeIdx], alist[i] = alist[i], alist[storeIdx]
                 storeIdx += 1
 
-        swap_list_items(alist, storeIdx, last)
+        alist[storeIdx], alist[last] = alist[last], alist[storeIdx]
 
         # sort lesser & upper partitions
         quicksort_inplace(alist, first, storeIdx-1)
@@ -260,8 +197,6 @@ def list_sort_tester(sort_func, sort_method_name, unsorted_list):
 #
 #//////////////////////////////////////////////////////////////////////////////////////////////////
 
-#number_list = read_list_from_file('number_list.txt')
-
 orig_list = generate_integer_list(10000, 0, 10000)
 
 list_sort_tester(quicksort_outofplace, "Quicksort_OutOfPlace", orig_list)
@@ -271,6 +206,15 @@ print ""
 list_sort_tester(mergesort, "MergeSort", orig_list)
 print ""
 list_sort_tester(sorted, "PythonSort", orig_list)
+
+
+#sys.stdout = open('quicksort_inplace2.txt', 'w')
+#dis.dis(quicksort_inplace)
+
+#sys.stdout = open('quicksort_outofplace.txt', 'w')
+#dis.dis(quicksort_outofplace)
+
+#sys.stdout = sys.__stdout__
 
 #list_sort_tester(bubblesort, "BubbleSort", orig_list)
 
