@@ -1,0 +1,16 @@
+
+
+#gameScreen 
+{
+    background-color:#A0A0A0;
+    position:fixed;
+    top:80px;
+}
+
+#linkStart
+{
+    position:fixed;
+    top:50px;
+}
+
+
