@@ -2,7 +2,7 @@
  *  TODOs:
  *  1.  Add ball chase behavior to pet                                              -- DONE!
  *  2.  Add mouse tracking functionality (with visualization to start)              -- DONE!
- *  3.  Add throw ball throw ability (tracking & chasing ON/OFF based on throws)
+ *  3.  Add throw ball throw ability (tracking & chasing ON/OFF based on throws)    -- DONE!
  *  4.  Add enemies for pet to take out
  *  5.  Add multiple levels to sample behavior
  *  6.  Add different items to throw
@@ -93,6 +93,19 @@ function Rect(in_top, in_left, in_bottom, in_right)
             return false;
         }
     }
+
+    this.containsPoint = function(p)
+    {
+        if ((this.top < p.y) && (p.y < this.bottom) &&
+            (this.left < p.x) && (p.x < this.right)) 
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 }
 
 function MouseTracker(maxSamples, sampleRate)
@@ -169,6 +182,14 @@ function Actor()
 
     this.img = 0;
 
+    this.getBounds = function ()
+    {
+        return new Rect(this.pos.y,
+                        this.pos.x,
+                        this.pos.y+this.img.height,
+                        this.pos.x+this.img.width);
+    }
+
     this.draw = function (ctx)
     {
         ctx.drawImage(this.img, this.pos.x, this.pos.y);
@@ -177,14 +198,56 @@ function Actor()
     this.update = 0
 }
 
+function BallHeld(elapsedTime)
+{
+    if (this.owner)
+    {
+        this.pos.x = this.owner.pos.x;
+        this.pos.y = this.owner.pos.y;
+    }
+    else
+    {9
+        alert("DEBUG ERROR - BALL HELD WITHOUT OWNER");
+    }
+}
+
+function BallCrazy(elapsedTime)
+{
+    var r = this.getBounds();
+
+    if (!gBounds.containsRect(r))
+    {
+        if ((r.top < gBounds.top) || (r.bottom > gBounds.bottom))
+        {
+            this.direction.y *= -1;
+        }
+        if ((r.left < gBounds.left) || (r.right > gBounds.right))
+        {
+            this.direction.x *= -1;
+        }
+    }
+
+    this.pos.x += this.direction.x * elapsedTime * this.speed;
+    this.pos.y += this.direction.y * elapsedTime * this.speed;
+}
+
 
 function Ball()
 {
     this.pos = new Point();
-    this.direction = new Vector(0.5, 0.5);
+    this.direction = new Vector(100, 100);
+    this.speed = 0.001;
 
     this.img = new Image();
     this.owner = 0;
+
+    this.getBounds = function ()
+    {
+        return new Rect(this.pos.y,
+                        this.pos.x,
+                        this.pos.y+this.img.height,
+                        this.pos.x+this.img.width);
+    }
 
 
     this.draw = function (ctx)
@@ -192,53 +255,34 @@ function Ball()
         ctx.drawImage(this.img, this.pos.x, this.pos.y); 
     }
 
-    this.update = function(elapsedTime)
-    {
-        if (this.owner)
-        {
-            this.pos.x = this.owner.pos.x;
-            this.pos.y = this.owner.pos.y;
-        }
-        else
-        {
-            var r = new Rect(this.pos.y,
-                             this.pos.x,
-                             this.pos.y+this.img.height,
-                             this.pos.x+this.img.width);
-
-            if (!gBounds.containsRect(r))
-            {
-                if ((r.top < gBounds.top) || (r.bottom > gBounds.bottom))
-                {
-                    this.direction.y *= -1;
-                }
-                if ((r.left < gBounds.left) || (r.right > gBounds.right))
-                {
-                    this.direction.x *= -1;
-                }
-            }
-
-            this.pos.x += this.direction.x * elapsedTime;
-            this.pos.y += this.direction.y * elapsedTime;
-        }
-
-    }
+    this.update = BallCrazy;
 }
 
 function PetInit(p)
 {
-    p.direction.x = 0.1;
-    p.direction.y = 0.1;
+    p.direction.x = 1.0;
+    p.direction.y = 1.0;
+    p.pos.x = 150;
+    p.pos.y = 150;
 }
 
 
-function PetUpdate(elapsedTime)
+function PetChase(elapsedTime)
 {
     this.direction.x = gBall.pos.x - this.pos.x;
     this.direction.y = gBall.pos.y - this.pos.y;
 
     this.pos.x += this.direction.x * this.speed * (elapsedTime/1000);
     this.pos.y += this.direction.y * this.speed * (elapsedTime/1000);
+}
+
+
+var t = 0;
+function PetCircle(elapsedTime)
+{
+    t+= elapsedTime;
+    this.pos.x = Math.sin(t/500)*100 + 200; //this.direction.x * this.speed * (elapsedTime);
+    this.pos.y = Math.cos(t/500)*100 + 200; //this.direction.y * this.speed * (elapsedTime);
 }
 
 
@@ -257,21 +301,68 @@ var gPlayer = new Actor();
 var gPet = new Actor();
 var gBall = new Ball();
 
-var gMouseTracker = new MouseTracker(10, 50); // 10 samples every half second
+var gMouseTracker = new MouseTracker(5, 50); // 10 samples every half second
 
-function onClick(e)
+// returns true if throw, false otherwise.  if throw, global ball & pet state is updated
+function detectThrowParams()
 {
+    var isThrow = false;
 
+    var numSelSamples = 5;
+    if (gMouseTracker.sampleCount >= numSelSamples)
+    {
+        var lastFiveSamples = [];
+
+        var count = numSelSamples;
+        var idx = gMouseTracker.nextSampleLoc - 1;
+
+        while (count > 0)
+        {
+            if (idx < 0)
+            {
+                idx = gMouseTracker.sampleCount - 1; 
+            }
+
+            lastFiveSamples[numSelSamples-count] = gMouseTracker.samples[idx];
+
+            count -= 1;
+            idx++;
+        }
+
+        gBall.direction = new Vector(lastFiveSamples[0].x - lastFiveSamples[1].x,
+                                     lastFiveSamples[0].y - lastFiveSamples[1].y);
+
+        isThrow = true;
+    }
+
+    return isThrow;
 }
 
 function onMouseDown(e)
 {
-    gBall.owner = gPlayer;
+    // Pick up ball
+    if (gBall.getBounds().containsPoint(new Point(mouseX, mouseY)))
+    {
+        gBall.owner = gPlayer;
+        gBall.update = BallHeld;
+
+        gPet.update = PetCircle;
+    }
 }
 
 function onMouseUp(e)
 {
-    gBall.owner = 0;
+    // Calculate throw & let ball go!
+    if (gBall.owner)
+    {
+        if (detectThrowParams())
+        {
+            gPet.update = PetChase;
+        }
+
+        gBall.update = BallCrazy;
+        gBall.owner = 0;
+    }
 }
 
 function onMouseMove(e)
@@ -283,13 +374,19 @@ function onMouseMove(e)
 
 function gameUpdate(elapsedTime)
 {
-    var start = 
     gPlayer.pos.x = mouseX - gBallImage.width/2;
     gPlayer.pos.y = mouseY - gBallImage.height/2;
 
     gPet.update(elapsedTime);
     gBall.update(elapsedTime);
     gMouseTracker.update(elapsedTime);
+
+    if (gPet.getBounds().overlapRect(gBall.getBounds()))
+    {
+        gPet.direction = new Vector(0,0);
+        gPet.update = PetCircle;
+        gBall.direction = new Vector(0,0);
+    }
 }
 
 
@@ -334,7 +431,6 @@ function startGame()
     gCanvas = document.getElementById('gameScreen');
 
     gCanvas.onmousemove=onMouseMove;
-    gCanvas.onclick=onClick;
     gCanvas.onmousedown=onMouseDown;
     gCanvas.onmouseup=onMouseUp;
 
@@ -346,7 +442,9 @@ function startGame()
 
     gPet = new Actor();
     gPet.img = gBubImage;
-    gPet.update = PetUpdate;
+    gPet.update = PetCircle;
+    PetInit(gPet);
+
 
     gBall = new Ball();
     gBall.img = gBallImage;
@@ -356,12 +454,7 @@ function startGame()
     gPlayer = new Actor();
 
     var borderThickness = 5;
-
-    gBounds = new Rect();
-    gBounds.top = 5;
-    gBounds.left = 5;
-    gBounds.right = gCanvas.width - 5;
-    gBounds.bottom = gCanvas.height - 5;
+    gBounds = new Rect(borderThickness, borderThickness, gCanvas.height-borderThickness, gCanvas.width-borderThickness);
 
     // init lastTick, should be close
     gLastTick = (new Date()).getTime();
