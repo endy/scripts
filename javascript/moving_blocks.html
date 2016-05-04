@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Move Blocks Prototype</title>
+
+<script type="text/javascript">
+
+// UTILITIES
+function clamp(value, min, max)
+{
+    return (value < min) ? min : 
+                          (max < value) ? max : 
+                                          value;
+}
+
+// TYPES
+function Point(xIn, yIn)
+{
+    return {x:xIn, y:yIn};
+}
+
+function Block(xIn, yIn)
+{
+    return { 
+             pos:Point(xIn,yIn), 
+             width:10, 
+             height:10
+    };
+}
+function drawBlock(block, canvasCtx)
+{
+   // console.log("hi");
+    canvasCtx.fillStyle = "red";
+    canvasCtx.fillRect(block.pos.x, block.pos.y, 10,10); //(block.pos.x, block.pos.y, block.width, block.height); 
+}
+
+// GLOBALS
+var gUIEntities   = [];
+var gDrawEntities = [];
+var gEntities     = [];
+
+var gKeyState = { keys:{"a":1} };
+
+var gMouseState = { pos:Point(0,0),
+                    valid:false,
+                    leftButton:0,
+                    leftButtonPressed:false,
+                    rightButton:false,
+                    rightButtonPressed:false};
+
+function loadResources()
+{
+    // blockImage = new Image();
+    // blockImage.src = "some_block.png";
+}
+
+
+function createEntities()
+{
+    // create all game entities
+    // for each entity
+    //    create the object
+    //    add it to a UI list if interactive
+    //    add it to a draw list if drawable
+    //    add it to an update list if has internal update needs (should be all entities)
+
+    var blocks = [Block(100, 100), Block(500, 500), Block(350, 200) ];
+   
+    for (i = 0; i < blocks.length; i++)
+    {
+        gUIEntities.push(blocks[i]);
+    }
+}
+
+function uiUpdate()
+{
+   // console.log("update");
+
+    if (gMouseState.leftButtonPressed == true)
+    {
+        for (i = 0; i < gUIEntities.length; i++)
+        {
+            console.log(gUIEntities[i]);
+        }
+    }
+}
+
+function drawWorld()
+{
+    canvas = document.getElementById('screen');
+    var ctx = canvas.getContext('2d');
+
+    var b = Block(10, 10);
+
+    if (ctx)
+    {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+         ctx.fillStyle = "black";
+         ctx.fillRect(0, 0, canvas.width, canvas.height); 
+
+         drawBlock(b, ctx);
+
+    }
+
+    var worldLogString =  "MousePos: (" + gMouseState.pos.x + ", " + gMouseState.pos.y + ")";
+
+    worldLogString = "'A' Key Down: " + ((gKeyState.keys['b'] == null) ? '0' : 'blarg');
+
+    var worldLog = document.getElementById("worldLog");
+    worldLog.innerHTML = worldLogString;
+}
+
+function screenClicked()
+{
+    var canvas = document.getElementById('screen');
+    var rect = canvas.getBoundingClientRect();
+
+    var mouseLoc = { x:(event.clientX-rect.left),
+                     y:(event.clientY-rect.top)   };
+
+}
+
+function screenMouseMove()
+{
+    var canvas = document.getElementById('screen');
+    var rect = canvas.getBoundingClientRect(); 
+    gMouseState.pos = Point(event.clientX-rect.left, event.clientY-rect.top);
+}
+
+function mouseDown()
+{
+    gMouseState.leftButtonPressed = true;  
+}
+
+function mouseUp()
+{
+    gMouseState.leftButtonPressed = false;   
+}
+
+function mouseLeave()
+{ 
+    gMouseState.valid = 0;
+}
+function mouseEnter()
+{
+    
+    gMouseState.valid = 1;
+}
+
+
+function updateWorld()
+{
+    uiUpdate();
+    drawWorld();
+}
+
+function initApp()
+{
+    loadResources();
+    createEntities();
+
+  
+    setInterval(updateWorld, 1000/60);
+}
+
+</script>
+</head>
+
+<body onload="initApp();">
+<button onclick="alert('I do nothing!');">NULL</button>
+<br />
+<span id="Output"></span>
+
+<div>
+    <canvas id="screen" onmousemove="screenMouseMove()" 
+                        onmousedown="mouseDown()" 
+                        onmouseup="mouseUp()" 
+                        onmouseleave="mouseLeave()" 
+                        onmouseenter="mouseEnter()" width="800" height="600">
+    HTML5 Canvas unsupported
+    </canvas>
+    <div>World Log:<span id="worldLog"></span></div>
+    <div>UI Log:<span id="uiLog"></span></div>
+    <div>Graphics Log:<span id="graphicsLog"></span></div>
+</div>
+</body>
+</html>

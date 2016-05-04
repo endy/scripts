@@ -1,0 +1,41 @@
+<html>
+<head>
+<title>JS Experiments</title>
+
+<script type="text/javascript">
+
+
+function fibonacci(endNum)
+{
+    var span = document.getElementById("Output");
+    span.innerHTML = "1:1<br />";
+
+    var value = 1;
+    var lastValue = 0;
+
+	for (fibNum = 1; fibNum < endNum; fibNum++)
+    {
+        var newValue = value + lastValue;
+        lastValue = value;
+        value = newValue;
+        fibNum += 1;
+        span.innerHTML += fibNum + ":" + value +  "<br />";
+    }
+}
+
+function hello()
+{
+    var span = document.getElementById("Output");
+    span.innerHTML = "Hello!";
+}
+
+</script>
+</head>
+
+<body>
+<button onclick="fibonacci(50);">Fibonaaci</button>
+<button onclick="hello();">Hello</button>
+<br />
+<span id="Output"></span>
+</body>
+</html>

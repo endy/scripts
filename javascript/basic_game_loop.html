@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Game Loop</title>
+
+<script type="text/javascript">
+
+// UTILITIES
+
+// GLOBALS
+
+
+function loadResources()
+{
+    // load textures/images/etc   
+}
+
+function createEntities()
+{
+    // create entities
+}
+
+function drawWorld()
+{
+    canvas = document.getElementById('screen');
+    var ctx = canvas.getContext('2d');
+
+    if (ctx)
+    {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#000000";     
+        ctx.fillRect(0, 0, canvas.width, canvas.height); 
+    }
+}
+
+
+function updateWorld()
+{
+    // Update world
+
+    // Draw that update
+    drawWorld();
+}
+
+function initApp()
+{
+    loadResources();
+    createEntities();
+
+    setInterval(updateWorld, 1000/60);
+}
+
+</script>
+</head>
+
+<body onload="initApp();">
+<button onclick="alert('I do nothing!');">NULL</button>
+<br />
+<span id="Output"></span>
+
+<div>
+    <canvas id="screen" width="800" height="600">
+    HTML5 Canvas unsupported
+    </canvas>
+</div>
+</body>
+</html>
