@@ -110,6 +110,11 @@ function updateEntities()
         else
         {
             selectedBlock.selected = false;
+
+            // Snap block to grid based on block center
+            // todo: should we use the mouse position instead? maybe if block not centered on mouse
+            selectedBlock.pos.x -= ((selectedBlock.pos.x +20) % 40) - 20;
+            selectedBlock.pos.y -= ((selectedBlock.pos.y +20) % 40) - 20;
         }
     }
             
