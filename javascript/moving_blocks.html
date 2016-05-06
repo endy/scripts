@@ -21,23 +21,23 @@ function Point(xIn, yIn)
 
 function Block(xIn, yIn)
 {
-    return { 
-             pos:Point(xIn,yIn), 
-             width:50, 
-             height:50
-    };
+    return  { 
+                pos:Point(xIn,yIn), 
+                width:40, 
+                height:40,
+                draw:function(block, canvasCtx)
+                {
+                    canvasCtx.fillStyle = "blue";
+                    canvasCtx.fillRect(block.pos.x, block.pos.y, block.width, block.height);
+                }
+            };
 }
-function drawBlock(block, canvasCtx)
-{
-   // console.log("hi");
-    canvasCtx.fillStyle = "red";
-    canvasCtx.fillRect(block.pos.x, block.pos.y, block.width,block.height); //(block.pos.x, block.pos.y, block.width, block.height); 
-}
+
 ///////////////////////////////////////////
 // GLOBALS
-var gUIEntities   = [];
-var gDrawEntities = [];
-var gEntities     = [];
+var gUIEntities       = [];
+var gDrawableEntities = [];
+var gEntities         = [];
 
 var gKeyState = { keys:{} };
 
@@ -65,23 +65,22 @@ function createEntities()
     //    add it to a draw list if drawable
     //    add it to an update list if has internal update needs (should be all entities)
 
-    var blocks = [Block(100, 100), Block(500, 500), Block(350, 200) ];
+    var blocks = [Block(80, 80), Block(480, 480), Block(360, 200) ];
    
     for (i = 0; i < blocks.length; i++)
     {
-        gUIEntities.push(blocks[i]);
+        gEntities.push(blocks[i]);
+        gDrawableEntities.push(blocks[i]);
     }
 }
 
-function updateUI()
+function updateEntities()
 {
-   // console.log("update");
-
     var selectedBlock = null; 
       
-    for (i = 0; i < gUIEntities.length; i++)
+    for (i = 0; i < gEntities.length; i++)
     { 
-        var b = gUIEntities[i];
+        var b = gEntities[i];
         if (b.selected == true)
         {
             selectedBlock = b;
@@ -98,8 +97,7 @@ function updateUI()
                     selectedBlock = b;
             }     
         }
-    }
-  
+    }  
 
     if (selectedBlock != null)
     {
@@ -127,14 +125,25 @@ function updateUI()
 
 function drawUI(ctx)
 {
-	for (i = 0; i < gUIEntities.length; i++)
-	{
-        var block = gUIEntities[i];
+    var screenWidth = document.getElementById('screen').width;
+    var screenHeight = document.getElementById('screen').height;
+    var verticalLines = screenWidth / 40;
+    var horizontalLines = screenHeight / 40;
 
-        ctx.fillStyle = "blue";
-        ctx.fillRect(block.pos.x, block.pos.y, block.width, block.height);
-
-	}
+    for (var i = 1; i < verticalLines; i++)
+    {
+        ctx.beginPath();
+        ctx.moveTo(i*40, 0);
+        ctx.lineTo(i*40, screenHeight);
+        ctx.stroke();
+    }
+    for (var i = 1; i < horizontalLines; i++)
+    {
+        ctx.beginPath();
+        ctx.moveTo(0,           i*40);
+        ctx.lineTo(screenWidth, i*40);
+        ctx.stroke();
+    }
 }
 
 function drawWorld()
@@ -148,8 +157,15 @@ function drawWorld()
     {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        ctx.fillStyle = "black";
+        ctx.fillStyle = "grey";
         ctx.fillRect(0, 0, canvas.width, canvas.height); 
+
+
+		for (i = 0; i < gDrawableEntities.length; i++)
+		{
+            var e = gDrawableEntities[i];
+            e.draw(e, ctx);   
+		}
 
         // refactor this out of drawWorld
         drawUI(ctx);
@@ -175,7 +191,7 @@ function screenClicked()
 
 function updateMouse()
 {
-    gMouseState.prevPos = gMouseState.pos;
+    gMouseState.prevPos = Point(gMouseState.pos.x, gMouseState.pos.y);
 }
 
 function screenMouseMove()
@@ -234,10 +250,10 @@ function keyUp(event)
 function updateWorld()
 {
     updateMouse();
-    updateUI();
+
+    updateEntities();
 
     drawWorld();
-
 }
 
 function initApp()
