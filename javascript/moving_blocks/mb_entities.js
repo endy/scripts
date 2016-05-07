@@ -9,7 +9,7 @@ var EntityType =
 {
     Unknown:0,
     Ant:1,
-    Chicken:2,
+    Chicken:2
 };
 
 function Ant(x, y)
