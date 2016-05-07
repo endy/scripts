@@ -19,7 +19,7 @@ var gMouseState = { pos:new Point(0,0),
                     valid:false,
                     leftButton:0,
                     leftButtonPressed:false,
-                    rightButton:false,
+                    rightButton:0,
                     rightButtonPressed:false};
 
 function loadResources()
@@ -69,20 +69,58 @@ function createEntities()
     }
 }
 
+function testEntityIntersect(a, b)
+{
+    var intersect = false;
+
+    ///@todo cache intersect rect in entity
+
+   // if (
+
+
+    return intersect;
+}
+
 function updateEntities()
 {
-    for (i = 0; i < gEntities.length; i++)
-    {
-        gEntities[i].update();
-    }
-            
-
+    // Process Input
     for (k in gKeyState.keys)
     {
         if (gKeyState.keys[k] == 1)
         {
             console.log(k);
         }
+    }
+
+    // Determine world state
+    for (i = 0; i < gEntities.length; i++)
+    {
+        for (j = 0; j < gEntities.length; j++)
+        {
+            var entityA = gEntities[i];
+            var entityB = gEntities[j];
+            if (((entityA.type == Ant) && (entityB.type == Chicken)) ||
+                ((entityA.type == Chicken) && (entityB.type == Ant)))
+            {
+                // Test collision
+                if (testEntityIntersect(entityA, entityB) == true)
+                {
+                    // Kill Ant
+                    var ant = (entityA.type == EntityType.Ant) ? entityA : entityB;
+
+                    gEntities.remove(ant);
+                    gDrawableEntities.remove(ant);
+                }
+            }
+
+        }
+    }
+
+
+    // Update entities
+    for (i = 0; i < gEntities.length; i++)
+    {
+        gEntities[i].update();
     }
 }
 
@@ -129,11 +167,10 @@ function drawWorld()
 
         drawGrid(ctx);
 
-		for (i = 0; i < gDrawableEntities.length; i++)
-		{
+    for (i = 0; i < gDrawableEntities.length; i++)
+    {
             var e = gDrawableEntities[i];
-            e.draw(ctx);   
-		}
+            e.draw(ctx);
 
         // refactor this out of drawWorld
         drawUI(ctx);
@@ -141,7 +178,6 @@ function drawWorld()
 
     var worldLogString =  "MousePos: (" + gMouseState.pos.x + ", " + gMouseState.prevPos.y + ")";
 
-   
 
     var worldLog = document.getElementById("worldLog");
     worldLog.innerHTML = worldLogString;

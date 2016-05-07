@@ -5,8 +5,16 @@ function Point(x, y)
     this.y = y;
 }
 
+var EntityType =
+{
+    Unknown:0,
+    Ant:1,
+    Chicken:2,
+};
+
 function Ant(x, y)
 {
+    this.type = EntityType.Ant;
     this.pos = new Point(x,y);
     this.dir = new Point(4,4);
 
@@ -36,6 +44,7 @@ function Ant(x, y)
 
 function Chicken(homePoint)
 {
+    this.type = EntityType.Chicken;
     this.pos = new Point(homePoint.x, homePoint.y);
     this.homePoint = new Point(homePoint.x, homePoint.y);
 
@@ -87,7 +96,7 @@ function updateBlock()
                 gMouseState.pos.y < b.pos.y + b.height)
             {
                     selectedBlock = b;
-            }     
+            }
         }
     }  
 
