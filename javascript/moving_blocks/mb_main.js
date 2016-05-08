@@ -255,11 +255,26 @@ function keyUp(event)
 function updateWorld()
 {
     updateMouse();
-
     updateEntities();
-
     drawWorld();
 }
+
+var paused = 0;
+function onPauseButtonClick()
+{
+    if (paused == true)
+    {
+        document.getElementById('pauseButton').innerHTML = "Pause";
+        paused = false;
+    }
+    else
+    {
+        document.getElementById('pauseButton').innerHTML = "Resume";
+        paused = true;
+    }
+}
+
+
 
 function initApp()
 {
